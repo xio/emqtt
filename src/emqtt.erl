@@ -909,7 +909,7 @@ connected(info, {timeout, _TRef, keepalive}, State = #state{force_ping = true}) 
 
 connected(info, {timeout, TRef, keepalive},
           State = #state{conn_mod = ConnMod, socket = Sock,
-                         paused = Paused, keepalive_timer = TRef}) ->
+                         paused = Paused, keepalive=I, keepalive_timer = TRef}) ->
     case (not Paused) andalso should_ping(ConnMod, Sock) of
         true ->
             case send(?PACKET(?PINGREQ), State) of
@@ -918,7 +918,11 @@ connected(info, {timeout, TRef, keepalive},
                 Error -> {stop, Error}
             end;
         false ->
-            {keep_state, ensure_keepalive_timer(State), [hibernate]};
+            % should_ping(_,_) can guaranty PINGREQ in 2x of the Keep Alive period.
+            % [MQTT-3.1.2-22] requires at least one and a half times the Keep Alive period.
+            % reduce timer to 1/3 on second pass
+            NewState = ensure_keepalive_timer(State#state{keepalive=I div 3}),
+            {keep_state, NewState#state{keepalive=I}, [hibernate]};
         {error, Reason} ->
             {stop, Reason}
     end;
