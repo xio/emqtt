@@ -960,7 +960,7 @@ handle_event({call, From}, stop, _StateName, _State) ->
 
 handle_event(info, {gun_ws, ConnPid, _StreamRef, {binary, Data}},
              _StateName, State = #state{socket = ConnPid}) ->
-    ?LOG(debug, "RECV Data: ~p", [Data], State),
+%    ?LOG(debug, "RECV Data: ~p", [Data], State),
     process_incoming(iolist_to_binary(Data), [], State);
 
 handle_event(info, {gun_down, ConnPid, _, Reason, _, _},
@@ -970,7 +970,7 @@ handle_event(info, {gun_down, ConnPid, _, Reason, _, _},
 
 handle_event(info, {TcpOrSsL, _Sock, Data}, _StateName, State)
     when TcpOrSsL =:= tcp; TcpOrSsL =:= ssl ->
-    ?LOG(debug, "RECV Data: ~p", [Data], State),
+%    ?LOG(debug, "RECV Data: ~p", [Data], State),
     process_incoming(Data, [], run_sock(State));
 
 handle_event(info, {Error, _Sock, Reason}, _StateName, State)
@@ -1267,7 +1267,7 @@ send(Msg, State) when is_record(Msg, mqtt_msg) ->
 send(Packet, State = #state{conn_mod = ConnMod, socket = Sock, proto_ver = Ver})
     when is_record(Packet, mqtt_packet) ->
     Data = emqtt_frame:serialize(Packet, Ver),
-    ?LOG(debug, "SEND Data: ~1000p", [Packet], State),
+%    ?LOG(debug, "Data: ~1000p", [Packet], State),
     case ConnMod:send(Sock, Data) of
         ok  -> {ok, bump_last_packet_id(State)};
         Error -> Error
